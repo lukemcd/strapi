@@ -1,21 +1,21 @@
+import { cloneDeep, get, isEmpty, isEqual, set } from 'lodash';
+import PropTypes from 'prop-types';
 import React, { useEffect, useReducer } from 'react';
 import { Prompt, useParams } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import { cloneDeep, get, isEmpty, isEqual, set } from 'lodash';
 import {
-  request,
   LoadingIndicatorPage,
+  request,
   useGlobalContext,
 } from 'strapi-helper-plugin';
-import pluginId from '../../pluginId';
 import EditViewDataManagerContext from '../../contexts/EditViewDataManager';
-import createYupSchema from './utils/schema';
-import createDefaultForm from './utils/createDefaultForm';
-import getFilesToUpload from './utils/getFilesToUpload';
-import cleanData from './utils/cleanData';
-import getYupInnerErrors from './utils/getYupInnerErrors';
+import pluginId from '../../pluginId';
 import init from './init';
 import reducer, { initialState } from './reducer';
+import cleanData from './utils/cleanData';
+import createDefaultForm from './utils/createDefaultForm';
+import getFilesToUpload from './utils/getFilesToUpload';
+import getYupInnerErrors from './utils/getYupInnerErrors';
+import createYupSchema from './utils/schema';
 
 const getRequestUrl = path => `/${pluginId}/explorer/${path}`;
 
@@ -55,7 +55,7 @@ const EditViewDataManagerProvider = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await request(getRequestUrl(`${slug}/${id}`), {
+        const data = await request(getRequestUrl(`${slug}/${id || ''}`), {
           method: 'GET',
           signal,
         });
@@ -65,8 +65,19 @@ const EditViewDataManagerProvider = ({
           data,
         });
       } catch (err) {
-        if (err.code !== 20) {
+        if (id && err.code !== 20) {
           strapi.notification.error(`${pluginId}.error.record.fetch`);
+        }
+        if (!id && err.response.status === 404) {
+          await request(getRequestUrl(slug), {
+            method: 'POST',
+            body: {},
+            signal,
+          });
+
+          dispatch({
+            type: 'SUBMIT_SUCCESS',
+          });
         }
       }
     };
@@ -246,7 +257,15 @@ const EditViewDataManagerProvider = ({
       // Change the request helper default headers so we can pass a FormData
       const headers = {};
       const method = isCreatingEntry ? 'POST' : 'PUT';
-      const endPoint = isCreatingEntry ? slug : `${slug}/${id}`;
+      let endPoint;
+
+      if (isCreatingEntry) {
+        endPoint = slug;
+      } else if (modifiedData) {
+        endPoint = `${slug}/${modifiedData.id}`;
+      } else {
+        endPoint = `${slug}/${id}`;
+      }
 
       emitEvent(isCreatingEntry ? 'willCreateEntry' : 'willEditEntry');
 

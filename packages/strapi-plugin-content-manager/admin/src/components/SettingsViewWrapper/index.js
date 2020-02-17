@@ -129,6 +129,7 @@ const SettingsViewWrapper = ({
   };
 
   const handleSubmit = e => {
+    console.log('e');
     e.preventDefault();
     toggleWarningSubmit();
     emitEvent('willSaveContentTypeLayout');

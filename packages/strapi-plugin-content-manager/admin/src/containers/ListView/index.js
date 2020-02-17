@@ -73,6 +73,7 @@ function ListView({
   const [isFilterPickerOpen, setFilterPickerState] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
   const contentTypePath = [slug, 'contentType'];
+  console.log(contentTypePath);
 
   getLayoutSettingRef.current = settingName =>
     get(layouts, [...contentTypePath, 'settings', settingName], '');
@@ -461,12 +462,6 @@ export function mapDispatchToProps(dispatch) {
     dispatch
   );
 }
-const withConnect = connect(
-  mapStateToProps,
-  mapDispatchToProps
-);
+const withConnect = connect(mapStateToProps, mapDispatchToProps);
 
-export default compose(
-  withConnect,
-  memo
-)(ListView);
+export default compose(withConnect, memo)(ListView);

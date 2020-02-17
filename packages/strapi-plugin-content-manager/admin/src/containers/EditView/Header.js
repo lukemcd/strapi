@@ -114,7 +114,7 @@ const Header = () => {
   const handleConfirmDelete = async () => {
     toggleWarningDelete();
     setIsSubmitting();
-
+    console.log(initialData);
     try {
       emitEvent('willDeleteEntry');
       await request(getRequestUrl(`${slug}/${id}`), {
